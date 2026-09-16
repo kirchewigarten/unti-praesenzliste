@@ -2,12 +2,13 @@
 // Vor dem ersten Start ausfüllen (siehe README.md, Abschnitt "Einrichtung").
 
 export const FIREBASE_CONFIG = {
-  apiKey: 'BITTE_AUSFUELLEN',
-  authDomain: 'BITTE_AUSFUELLEN.firebaseapp.com',
-  projectId: 'BITTE_AUSFUELLEN',
-  storageBucket: 'BITTE_AUSFUELLEN.firebasestorage.app',
-  messagingSenderId: 'BITTE_AUSFUELLEN',
-  appId: 'BITTE_AUSFUELLEN',
+  apiKey: 'AIzaSyCoNBCVCTPA25BH5WZ2IeAvYrgSJE5vF3E',
+  authDomain: 'unti-praesenzliste.firebaseapp.com',
+  projectId: 'unti-praesenzliste',
+  storageBucket: 'unti-praesenzliste.firebasestorage.app',
+  messagingSenderId: '912737085903',
+  appId: '1:912737085903:web:3412b233e1cb5cedc94aba',
+  measurementId: 'G-LM7E1MENL8',
 }
 
 // Kein individueller Login pro Leitungsperson — alle teilen sich ein Firebase-Auth-Konto mit
