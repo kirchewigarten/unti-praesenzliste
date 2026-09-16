@@ -30,44 +30,80 @@
       </div>
     </header>
 
-    <section class="termin-auswahl">
-      <p id="ical-status" class="hinweis"></p>
-      <div class="termin-zeile">
-        <input id="termin-suche" type="search" placeholder="Termin filtern (Titel) …" value="Unti" />
-        <select id="termin-select"></select>
-      </div>
-      <details>
-        <summary>Termin manuell hinzufügen</summary>
-        <form id="termin-manuell-form" class="inline-form">
-          <label>Datum<input type="date" name="datum" required /></label>
-          <label>Zeit<input type="time" name="zeit" /></label>
-          <label>Titel<input type="text" name="titel" placeholder="z.B. Unti 1. Klasse" /></label>
-          <button type="submit">Hinzufügen</button>
-        </form>
-      </details>
+    <nav class="tabs">
+      <button type="button" class="tab-button aktiv" data-tab="absenzen">Absenzen</button>
+      <button type="button" class="tab-button" data-tab="personen">Personen</button>
+    </nav>
+
+    <section id="tab-absenzen" class="tab-panel">
+      <section class="termin-auswahl">
+        <p id="ical-status" class="hinweis"></p>
+        <div class="termin-zeile">
+          <input id="termin-suche" type="search" placeholder="Termin filtern (Titel) …" value="Unti" />
+          <select id="termin-select"></select>
+        </div>
+        <details>
+          <summary>Termin manuell hinzufügen</summary>
+          <form id="termin-manuell-form" class="inline-form">
+            <label>Datum<input type="date" name="datum" required /></label>
+            <label>Zeit<input type="time" name="zeit" /></label>
+            <label>Titel<input type="text" name="titel" placeholder="z.B. Unti 1. Klasse" /></label>
+            <button type="submit">Hinzufügen</button>
+          </form>
+        </details>
+      </section>
+
+      <table class="personen-tabelle">
+        <thead>
+          <tr>
+            <th>Vorname</th>
+            <th>Nachname</th>
+            <th>Geburtstag</th>
+            <th>Klasse</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="personen-tabelle-body"></tbody>
+      </table>
+
+      <ul class="legende">
+        <li><span class="punkt status-anwesend"></span> Anwesend</li>
+        <li><span class="punkt status-abgemeldet"></span> Abgemeldet</li>
+        <li><span class="punkt status-unentschuldigt"></span> Unentschuldigt</li>
+        <li><span class="punkt"></span> Noch nicht erfasst</li>
+      </ul>
     </section>
 
-    <table class="personen-tabelle">
-      <thead>
-        <tr>
-          <th>Vorname</th>
-          <th>Nachname</th>
-          <th>Geburtstag</th>
-          <th>Klasse</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="personen-tabelle-body"></tbody>
-    </table>
+    <section id="tab-personen" class="tab-panel" hidden>
+      <div class="personen-lasche-kopf">
+        <button id="neue-person" type="button" class="neue-person-button">+ Person hinzufügen</button>
+        <details class="csv-import">
+          <summary>Personen aus CSV importieren</summary>
+          <p class="hinweis">
+            Erkennt automatisch Spalten für Vorname, Nachname, Geburtsdatum und Klasse — egal in
+            welcher Reihenfolge und welche weiteren Spalten die Datei sonst enthält. Bereits
+            vorhandene Personen (gleicher Vor- und Nachname) werden nur ergänzt, nicht dupliziert.
+          </p>
+          <form id="csv-import-form" class="inline-form">
+            <input type="file" name="csv" accept=".csv,text/csv" required />
+            <button type="submit">Importieren</button>
+          </form>
+          <p id="csv-import-status" class="hinweis"></p>
+        </details>
+      </div>
 
-    <button id="neue-person" type="button" class="neue-person-button">+ Person hinzufügen</button>
-
-    <ul class="legende">
-      <li><span class="punkt status-anwesend"></span> Anwesend</li>
-      <li><span class="punkt status-abgemeldet"></span> Abgemeldet</li>
-      <li><span class="punkt status-unentschuldigt"></span> Unentschuldigt</li>
-      <li><span class="punkt"></span> Noch nicht erfasst</li>
-    </ul>
+      <table class="personen-tabelle personen-verwaltung-tabelle">
+        <thead>
+          <tr>
+            <th>Vorname</th>
+            <th>Nachname</th>
+            <th>Geburtstag</th>
+            <th>Klasse</th>
+          </tr>
+        </thead>
+        <tbody id="personen-verwaltung-body"></tbody>
+      </table>
+    </section>
   </section>
 
   <dialog id="person-dialog">

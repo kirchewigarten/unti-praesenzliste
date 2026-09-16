@@ -22,6 +22,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js'
 import { FIREBASE_CONFIG, MASTER_LOGIN_EMAIL, ICAL_URL, ICAL_PROXY_URL } from './config.js'
 import { parseIcs } from './ics-parser.js'
+import { personenAusCsv } from './csv-import.js'
 
 const STATUS_REIHENFOLGE = [null, 'anwesend', 'abgemeldet', 'unentschuldigt']
 const STATUS_LABEL = { anwesend: 'Anwesend', abgemeldet: 'Abgemeldet', unentschuldigt: 'Unentschuldigt' }
@@ -65,12 +66,30 @@ function starteApp() {
     terminManuellForm: document.getElementById('termin-manuell-form'),
     icalStatus: document.getElementById('ical-status'),
     tabelle: document.getElementById('personen-tabelle-body'),
+    personenVerwaltungTabelle: document.getElementById('personen-verwaltung-body'),
     personForm: document.getElementById('person-form'),
     personDialog: document.getElementById('person-dialog'),
     personDialogTitel: document.getElementById('person-dialog-titel'),
     personLoeschen: document.getElementById('person-loeschen'),
     personAbbrechen: document.getElementById('person-abbrechen'),
     neuePerson: document.getElementById('neue-person'),
+    tabButtons: document.querySelectorAll('.tab-button'),
+    tabPanels: {
+      absenzen: document.getElementById('tab-absenzen'),
+      personen: document.getElementById('tab-personen'),
+    },
+    csvImportForm: document.getElementById('csv-import-form'),
+    csvImportStatus: document.getElementById('csv-import-status'),
+  }
+
+  // --- Tabs: Absenzen / Personen ---
+  for (const button of el.tabButtons) {
+    button.addEventListener('click', () => {
+      for (const b of el.tabButtons) b.classList.toggle('aktiv', b === button)
+      for (const [name, panel] of Object.entries(el.tabPanels)) {
+        panel.hidden = name !== button.dataset.tab
+      }
+    })
   }
 
   // --- Login ---
@@ -187,10 +206,79 @@ function starteApp() {
   onSnapshot(query(personenCol, orderBy('nachname')), snap => {
     personen = snap.docs.map(d => ({ id: d.id, ...d.data() }))
     tabelleNeuZeichnen()
+    personenVerwaltungNeuZeichnen()
   })
 
   el.neuePerson.addEventListener('click', () => personDialogOeffnen(null))
   el.personAbbrechen.addEventListener('click', () => el.personDialog.close())
+
+  // --- CSV-Import ---
+  el.csvImportForm.addEventListener('submit', async e => {
+    e.preventDefault()
+    const form = e.target
+    const datei = form.csv.files[0]
+    if (!datei) return
+
+    el.csvImportStatus.textContent = 'Importiere …'
+    try {
+      const text = await csvDateiAlsText(datei)
+      const eintraege = personenAusCsv(text)
+      // Lokale Arbeitskopie, damit Duplikate innerhalb derselben Import-Datei erkannt werden,
+      // auch bevor der Live-Snapshot (onSnapshot oben) die neu angelegten Personen nachzieht.
+      const bekannt = [...personen]
+      let neu = 0
+      let ergaenzt = 0
+      let uebersprungen = 0
+
+      for (const eintrag of eintraege) {
+        const bestehend = bekannt.find(
+          p =>
+            p.vorname.trim().toLowerCase() === eintrag.vorname.toLowerCase() &&
+            p.nachname.trim().toLowerCase() === eintrag.nachname.toLowerCase(),
+        )
+        if (!bestehend) {
+          const ref = await addDoc(personenCol, {
+            vorname: eintrag.vorname,
+            nachname: eintrag.nachname,
+            geburtstag: eintrag.geburtstag,
+            klasse: eintrag.klasse,
+            erstelltAm: serverTimestamp(),
+          })
+          bekannt.push({ id: ref.id, ...eintrag })
+          neu++
+          continue
+        }
+        const aenderungen = {}
+        if (!bestehend.geburtstag && eintrag.geburtstag) aenderungen.geburtstag = eintrag.geburtstag
+        if (!bestehend.klasse && eintrag.klasse) aenderungen.klasse = eintrag.klasse
+        if (Object.keys(aenderungen).length > 0) {
+          await updateDoc(doc(personenCol, bestehend.id), aenderungen)
+          Object.assign(bestehend, aenderungen)
+          ergaenzt++
+        } else {
+          uebersprungen++
+        }
+      }
+
+      el.csvImportStatus.textContent =
+        `${neu} neu hinzugefügt, ${ergaenzt} ergänzt, ${uebersprungen} bereits vollständig vorhanden.`
+      form.reset()
+    } catch (err) {
+      el.csvImportStatus.textContent = 'Import fehlgeschlagen: ' + err.message
+    }
+  })
+
+  // Liest die Datei bytegenau ein und erkennt automatisch, ob sie UTF-8- oder
+  // Windows-1252/Latin-1-kodiert ist (typisch bei Excel-/Kirchendatenbank-Exporten) — sonst
+  // würden Umlaute wie "Joël" als kaputte Zeichen importiert.
+  async function csvDateiAlsText(datei) {
+    const buffer = await datei.arrayBuffer()
+    try {
+      return new TextDecoder('utf-8', { fatal: true }).decode(buffer)
+    } catch {
+      return new TextDecoder('windows-1252').decode(buffer)
+    }
+  }
 
   el.personForm.addEventListener('submit', async e => {
     e.preventDefault()
@@ -286,13 +374,9 @@ function starteApp() {
 
       const vornameZelle = document.createElement('td')
       vornameZelle.textContent = person.vorname
-      vornameZelle.className = 'name-zelle'
-      vornameZelle.addEventListener('click', () => personDialogOeffnen(person))
 
       const nachnameZelle = document.createElement('td')
       nachnameZelle.textContent = person.nachname
-      nachnameZelle.className = 'name-zelle'
-      nachnameZelle.addEventListener('click', () => personDialogOeffnen(person))
 
       const geburtstagZelle = document.createElement('td')
       geburtstagZelle.textContent = person.geburtstag ? formatiereDatum(person.geburtstag) : ''
@@ -311,6 +395,31 @@ function starteApp() {
 
       zeile.append(vornameZelle, nachnameZelle, geburtstagZelle, klasseZelle, statusZelle)
       el.tabelle.appendChild(zeile)
+    }
+  }
+
+  function personenVerwaltungNeuZeichnen() {
+    el.personenVerwaltungTabelle.innerHTML = ''
+    for (const person of personen) {
+      const zeile = document.createElement('tr')
+      zeile.className = 'name-zelle'
+      zeile.title = 'Klicken, um die Person zu bearbeiten'
+      zeile.addEventListener('click', () => personDialogOeffnen(person))
+
+      const vornameZelle = document.createElement('td')
+      vornameZelle.textContent = person.vorname
+
+      const nachnameZelle = document.createElement('td')
+      nachnameZelle.textContent = person.nachname
+
+      const geburtstagZelle = document.createElement('td')
+      geburtstagZelle.textContent = person.geburtstag ? formatiereDatum(person.geburtstag) : ''
+
+      const klasseZelle = document.createElement('td')
+      klasseZelle.textContent = person.klasse ?? ''
+
+      zeile.append(vornameZelle, nachnameZelle, geburtstagZelle, klasseZelle)
+      el.personenVerwaltungTabelle.appendChild(zeile)
     }
   }
 

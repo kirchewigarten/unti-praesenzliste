@@ -99,6 +99,40 @@ button[type='submit'] {
   gap: 8px;
 }
 
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 10px;
+  font-weight: 600;
+}
+
+.tab-button.aktiv {
+  background: #222;
+  color: white;
+  border-color: #222;
+}
+
+.personen-lasche-kopf {
+  margin-bottom: 12px;
+}
+
+.csv-import {
+  margin-top: 12px;
+  background: white;
+  border: 1px solid var(--rand);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.personen-verwaltung-tabelle tbody tr:hover {
+  background: #f0f0f0;
+}
+
 .termin-auswahl {
   margin-bottom: 16px;
 }
