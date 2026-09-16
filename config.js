@@ -24,4 +24,4 @@ export const ICAL_URL = 'https://admin.kirche-wigarten.ch/ical/?user=315f40bd82d
 // obigen iCal-Feed mit den nötigen CORS-Headern an den Browser weiter. Erst nach dem
 // Deployment des Workers eintragen; ohne gültige URL wird nur aus Firestore gelesen
 // (bereits einmal importierte Termine bleiben also sichtbar, es kommen nur keine neuen dazu).
-export const ICAL_PROXY_URL = ''
+export const ICAL_PROXY_URL = 'https://unti-ical-proxy.unti-praesenzliste.workers.dev'
