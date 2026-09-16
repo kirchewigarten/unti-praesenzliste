@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unti-Präsenzliste</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="fehler-banner" class="banner banner-fehler" hidden></div>
+
+  <section id="login-screen" class="login-screen">
+    <h1>Unti-Präsenzliste</h1>
+    <form id="login-form" class="login-form">
+      <label>Master-Passwort<input type="password" name="passwort" autocomplete="current-password" required /></label>
+      <button type="submit">Anmelden</button>
+      <p id="login-fehler" class="fehlertext" hidden></p>
+    </form>
+    <p class="hinweis">
+      Ein gemeinsames Passwort für alle Leitungspersonen — festgelegt in der Firebase-Konsole
+      (siehe README.md).
+    </p>
+  </section>
+
+  <section id="app" hidden>
+    <header class="kopfzeile">
+      <h1>Unti-Präsenzliste</h1>
+      <div>
+        <button id="abmelden" type="button">Abmelden</button>
+      </div>
+    </header>
+
+    <section class="termin-auswahl">
+      <p id="ical-status" class="hinweis"></p>
+      <div class="termin-zeile">
+        <input id="termin-suche" type="search" placeholder="Termin filtern (Titel) …" value="Unti" />
+        <select id="termin-select"></select>
+      </div>
+      <details>
+        <summary>Termin manuell hinzufügen</summary>
+        <form id="termin-manuell-form" class="inline-form">
+          <label>Datum<input type="date" name="datum" required /></label>
+          <label>Zeit<input type="time" name="zeit" /></label>
+          <label>Titel<input type="text" name="titel" placeholder="z.B. Unti 1. Klasse" /></label>
+          <button type="submit">Hinzufügen</button>
+        </form>
+      </details>
+    </section>
+
+    <table class="personen-tabelle">
+      <thead>
+        <tr>
+          <th>Vorname</th>
+          <th>Nachname</th>
+          <th>Geburtstag</th>
+          <th>Klasse</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="personen-tabelle-body"></tbody>
+    </table>
+
+    <button id="neue-person" type="button" class="neue-person-button">+ Person hinzufügen</button>
+
+    <ul class="legende">
+      <li><span class="punkt status-anwesend"></span> Anwesend</li>
+      <li><span class="punkt status-abgemeldet"></span> Abgemeldet</li>
+      <li><span class="punkt status-unentschuldigt"></span> Unentschuldigt</li>
+      <li><span class="punkt"></span> Noch nicht erfasst</li>
+    </ul>
+  </section>
+
+  <dialog id="person-dialog">
+    <form id="person-form" method="dialog" class="inline-form">
+      <h2 id="person-dialog-titel">Person hinzufügen</h2>
+      <label>Vorname<input type="text" name="vorname" required /></label>
+      <label>Nachname<input type="text" name="nachname" required /></label>
+      <label>Geburtstag<input type="date" name="geburtstag" /></label>
+      <label>Klasse
+        <select name="klasse">
+          <option value="">–</option>
+          <option value="1">1.</option>
+          <option value="2">2.</option>
+          <option value="3">3.</option>
+        </select>
+      </label>
+      <div class="dialog-buttons">
+        <button id="person-loeschen" type="button" class="loeschen-button" hidden>Löschen</button>
+        <button id="person-abbrechen" type="button">Abbrechen</button>
+        <button type="submit">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

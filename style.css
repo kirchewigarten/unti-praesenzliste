@@ -1,0 +1,266 @@
+:root {
+  --gruen: #c6ecc6;
+  --gruen-text: #1c6b1c;
+  --gelb: #f7ecab;
+  --gelb-text: #8a6d00;
+  --rot: #f3c3c1;
+  --rot-text: #a3231e;
+  --rand: #d8d8d8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 16px;
+  color: #222;
+  background: #fafafa;
+}
+
+h1 {
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.banner {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.banner-fehler {
+  background: var(--rot);
+  color: var(--rot-text);
+}
+
+.login-screen {
+  max-width: 360px;
+  margin: 10vh auto;
+  text-align: center;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+  text-align: left;
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.login-form input,
+.inline-form input,
+.inline-form select {
+  padding: 8px;
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+button {
+  padding: 8px 14px;
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+button[type='submit'] {
+  background: #2d6cdf;
+  color: white;
+  border-color: #2d6cdf;
+}
+
+.fehlertext {
+  color: var(--rot-text);
+}
+
+.hinweis {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.kopfzeile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.termin-auswahl {
+  margin-bottom: 16px;
+}
+
+.termin-zeile {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#termin-suche {
+  flex: 1;
+  min-width: 160px;
+  padding: 8px;
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+}
+
+#termin-select {
+  flex: 2;
+  min-width: 220px;
+  padding: 8px;
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+}
+
+.inline-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: end;
+  margin-top: 8px;
+}
+
+.inline-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.personen-tabelle {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.personen-tabelle th,
+.personen-tabelle td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--rand);
+}
+
+.personen-tabelle th {
+  background: #222;
+  color: white;
+  font-weight: 600;
+}
+
+.name-zelle {
+  cursor: pointer;
+}
+
+.status-zelle {
+  cursor: pointer;
+  font-weight: 600;
+  text-align: center;
+}
+
+tr.status-anwesend {
+  background: var(--gruen);
+  color: var(--gruen-text);
+}
+
+tr.status-abgemeldet {
+  background: var(--gelb);
+  color: var(--gelb-text);
+}
+
+tr.status-unentschuldigt {
+  background: var(--rot);
+  color: var(--rot-text);
+}
+
+.neue-person-button {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.legende {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
+  margin-top: 16px;
+  font-size: 0.85rem;
+}
+
+.legende li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.punkt {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--rand);
+  display: inline-block;
+}
+
+.punkt.status-anwesend {
+  background: var(--gruen);
+}
+
+.punkt.status-abgemeldet {
+  background: var(--gelb);
+}
+
+.punkt.status-unentschuldigt {
+  background: var(--rot);
+}
+
+dialog {
+  border: none;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 340px;
+  width: 90%;
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.loeschen-button {
+  margin-right: auto;
+  color: var(--rot-text);
+  border-color: var(--rot-text);
+}
+
+@media (max-width: 480px) {
+  .personen-tabelle {
+    font-size: 0.85rem;
+  }
+
+  .personen-tabelle th,
+  .personen-tabelle td {
+    padding: 8px 6px;
+  }
+}
