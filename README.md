@@ -52,15 +52,22 @@ Die Dateien in diesem Repo sind rein statisch — irgendein Static-Hosting reich
 
 ## Verwendung
 
-1. Mit dem gemeinsamen Master-Passwort anmelden.
-2. Termin oben auswählen (Suchfeld ist standardmässig auf "Unti" vorgefiltert, damit nur
-   Unti-Termine erscheinen, nicht die übrigen ~50 Kalendereinträge der Kirchgemeinde — Feld
-   leeren, um alle zu sehen). Fehlt ein Termin im Kalender, lässt er sich unten manuell
-   hinzufügen.
-3. Auf eine Status-Zelle klicken, um durchzuschalten: nicht erfasst → Anwesend → Abgemeldet
-   → Unentschuldigt → nicht erfasst.
-4. "+ Person hinzufügen" für neue Teilnehmende (Vorname, Nachname, Geburtstag, Klasse).
-   Auf Vor- oder Nachname klicken, um eine bestehende Person zu bearbeiten oder zu löschen.
+Nach dem Login gibt es drei Laschen:
+
+- **Absenzen**: Termin oben auswählen (der Kalender-Feed liefert ohnehin nur Unti-Termine —
+  Titel mit "Recharge" oder "Praktikum"/"Untipraktikum" werden zusätzlich immer ausgeblendet,
+  da das keine regulären Unterrichtstermine sind). Fehlt ein Termin, lässt er sich unten
+  manuell hinzufügen. Auf eine Status-Zelle klicken, um durchzuschalten: nicht erfasst →
+  Anwesend → Abgemeldet → Unentschuldigt → nicht erfasst.
+- **Übersicht**: reine Lese-Ansicht — alle Personen als Zeilen, alle (gefilterten) Termine als
+  Spalten, Status farbig markiert. Zum Ändern eines Status in die Absenzen-Lasche wechseln.
+- **Personen**: "+ Person hinzufügen" für neue Teilnehmende (Vorname, Nachname, Geburtstag,
+  Klasse, Rolle Teilnehmer/Leiter — Leiter erscheinen in allen Listen zuoberst). Auf eine
+  Zeile klicken, um eine bestehende Person zu bearbeiten oder zu löschen. Über "Personen aus
+  CSV importieren" lässt sich eine Liste importieren — die Spalten Vorname/Nachname/
+  Geburtsdatum/Klasse werden automatisch erkannt, unabhängig von Reihenfolge und weiteren
+  Spalten in der Datei; bereits vorhandene Personen (gleicher Vor-/Nachname) werden nur
+  ergänzt, nicht dupliziert.
 
 ## Was geprüft wurde — und was nicht
 

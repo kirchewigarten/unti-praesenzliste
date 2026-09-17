@@ -30,7 +30,8 @@ const STATUS_KUERZEL = { anwesend: 'A', abgemeldet: 'Ab', unentschuldigt: 'U' }
 
 // Termine mit diesen Wörtern im Titel werden standardmässig nie angezeigt (weder in der
 // Terminauswahl noch in der Übersicht) — unabhängig vom Suchbegriff im Filterfeld.
-const AUSGESCHLOSSENE_TERMIN_STICHWOERTER = ['recharge', 'untipraktikum']
+// "praktikum" erfasst per Teilstring sowohl "Praktikum" als auch "Untipraktikum".
+const AUSGESCHLOSSENE_TERMIN_STICHWOERTER = ['recharge', 'praktikum']
 
 function rolleRang(rolle) {
   return rolle === 'leiter' ? 0 : 1
@@ -222,8 +223,8 @@ function starteApp() {
     const id = sichereId(`manuell-${datum}-${titel ?? Date.now()}`)
     await setDoc(doc(termineCol, id), { datum, zeit, titel, ort: null, quelle: 'manuell', aktualisiertAm: serverTimestamp() })
     form.reset()
-    // Filter leeren, sonst bleibt ein manuell hinzugefügter Termin ohne "Unti" im Titel
-    // wegen der standardmässigen Vorfilterung unsichtbar (siehe #termin-suche in index.html).
+    // Filter leeren, sonst bleibt ein manuell hinzugefügter Termin unsichtbar, falls gerade
+    // nach einem Begriff gesucht wird, der im neuen Titel nicht vorkommt.
     el.terminSuche.value = ''
     ausgewaehlterTerminId = id
   })
