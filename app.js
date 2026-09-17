@@ -118,11 +118,29 @@ function starteApp() {
     uebersichtKopfzeile: document.getElementById('uebersicht-kopfzeile'),
     uebersichtTabelle: document.getElementById('uebersicht-tabelle-body'),
     uebersichtSchuljahr: document.getElementById('uebersicht-schuljahr'),
+    absenzenSchuljahr: document.getElementById('absenzen-schuljahr'),
+    absenzenSchuljahrUmschalten: document.getElementById('absenzen-schuljahr-umschalten'),
   }
 
+  // Die Schuljahr-Auswahl ist zwischen Absenzen- und Übersicht-Lasche gekoppelt: eine Änderung
+  // in der einen Lasche wirkt sich auch auf die andere aus (gemeinsamer Zustand: gewaehltesSchuljahr).
   el.uebersichtSchuljahr.addEventListener('change', () => {
     gewaehltesSchuljahr = Number(el.uebersichtSchuljahr.value)
+    terminSelectNeuBefuellen()
     uebersichtNeuZeichnen()
+  })
+
+  el.absenzenSchuljahr.addEventListener('change', () => {
+    gewaehltesSchuljahr = Number(el.absenzenSchuljahr.value)
+    terminSelectNeuBefuellen()
+    uebersichtNeuZeichnen()
+  })
+
+  el.absenzenSchuljahrUmschalten.addEventListener('click', () => {
+    el.absenzenSchuljahr.hidden = !el.absenzenSchuljahr.hidden
+    el.absenzenSchuljahrUmschalten.textContent = el.absenzenSchuljahr.hidden
+      ? 'Andere Schuljahre anzeigen'
+      : 'Andere Schuljahre ausblenden'
   })
 
   // --- Tabs: Absenzen / Personen ---
@@ -271,8 +289,16 @@ function starteApp() {
   }
 
   function terminSelectNeuBefuellen() {
+    const alleGefiltert = termineGefiltert()
+    schuljahrOptionenAktualisieren(alleGefiltert)
+    const schuljahrGefiltert = alleGefiltert.filter(t => schuljahrVon(t.datum) === gewaehltesSchuljahr)
+    // Die 3-Monats-Regel gilt nur, solange das aktuelle (laufende) Schuljahr angezeigt wird —
+    // in einem bewusst ausgewählten anderen Schuljahr wäre sie sonst gleichbedeutend mit "alles
+    // ausblenden", da dort ohnehin (fast) alle Termine länger als 3 Monate zurückliegen.
+    const istAktuellesSchuljahr = gewaehltesSchuljahr === aktuellesSchuljahrStart()
+    const eingeschraenkt = istAktuellesSchuljahr ? schuljahrGefiltert.filter(terminNichtZuAlt) : schuljahrGefiltert
     // Aufsteigend sortiert: älteste (noch nicht ausgeblendete) Termine oben, künftige unten.
-    const gefiltert = [...termineGefiltert()].filter(terminNichtZuAlt).reverse()
+    const gefiltert = [...eingeschraenkt].reverse()
     const vorherAusgewaehlt = ausgewaehlterTerminId
     el.terminSelect.innerHTML = ''
     for (const t of gefiltert) {
@@ -634,7 +660,9 @@ function starteApp() {
     }
   }
 
-  function uebersichtSchuljahrOptionenAktualisieren(termineFuerJahre) {
+  // Aktualisiert die Schuljahr-Auswahl in Absenzen UND Übersicht (gemeinsamer Zustand: siehe
+  // gewaehltesSchuljahr weiter oben).
+  function schuljahrOptionenAktualisieren(termineFuerJahre) {
     const jahre = [...new Set(termineFuerJahre.map(t => schuljahrVon(t.datum)))].sort((a, b) => a - b)
     if (jahre.length === 0) return
     if (!jahre.includes(gewaehltesSchuljahr)) {
@@ -642,22 +670,24 @@ function starteApp() {
         Math.abs(jahr - gewaehltesSchuljahr) < Math.abs(naechstes - gewaehltesSchuljahr) ? jahr : naechstes,
       )
     }
-    const bisherige = [...el.uebersichtSchuljahr.options].map(o => o.value).join(',')
-    if (bisherige !== jahre.join(',')) {
-      el.uebersichtSchuljahr.innerHTML = ''
-      for (const jahr of jahre) {
-        const option = document.createElement('option')
-        option.value = jahr
-        option.textContent = schuljahrLabel(jahr)
-        el.uebersichtSchuljahr.appendChild(option)
+    for (const select of [el.uebersichtSchuljahr, el.absenzenSchuljahr]) {
+      const bisherige = [...select.options].map(o => o.value).join(',')
+      if (bisherige !== jahre.join(',')) {
+        select.innerHTML = ''
+        for (const jahr of jahre) {
+          const option = document.createElement('option')
+          option.value = jahr
+          option.textContent = schuljahrLabel(jahr)
+          select.appendChild(option)
+        }
       }
+      select.value = gewaehltesSchuljahr
     }
-    el.uebersichtSchuljahr.value = gewaehltesSchuljahr
   }
 
   function uebersichtNeuZeichnen() {
     const alleGefiltert = termineGefiltert()
-    uebersichtSchuljahrOptionenAktualisieren(alleGefiltert)
+    schuljahrOptionenAktualisieren(alleGefiltert)
     const termineAufsteigend = alleGefiltert.filter(t => schuljahrVon(t.datum) === gewaehltesSchuljahr).reverse()
 
     el.uebersichtKopfzeile.innerHTML = '<th>Name</th>'

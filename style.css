@@ -318,7 +318,8 @@ button[type='submit'] {
   white-space: nowrap;
 }
 
-#termin-select {
+#termin-select,
+#absenzen-schuljahr {
   width: 100%;
   padding: 8px;
   margin-top: 8px;
