@@ -40,6 +40,21 @@ function rolleRang(rolle) {
 // Reihenfolge, nach der die Icons in den Tabellenköpfen den Sortierzustand anzeigen.
 const SORTIER_ICON = { keine: '⇅', auf: '▲', ab: '▼' }
 
+// Schuljahr-Grenze: beginnt immer am 1. August. "2025" steht für das Schuljahr 2025/26.
+function schuljahrVon(datumIso) {
+  const [jahr, monat] = datumIso.split('-').map(Number)
+  return monat >= 8 ? jahr : jahr - 1
+}
+
+function schuljahrLabel(startJahr) {
+  return `${startJahr}/${String(startJahr + 1).slice(-2)}`
+}
+
+function aktuellesSchuljahrStart() {
+  const heute = new Date()
+  return heute.getMonth() + 1 >= 8 ? heute.getFullYear() : heute.getFullYear() - 1
+}
+
 if (FIREBASE_CONFIG.apiKey === 'BITTE_AUSFUELLEN') {
   zeigeFehler(
     'Die Datei config.js ist noch nicht ausgefüllt. Bitte die Firebase-Zugangsdaten eintragen ' +
@@ -69,6 +84,7 @@ function starteApp() {
   let ausgewaehlterTerminId = null
   let sortierSpalte = 'geburtstag'
   let sortierRichtung = 1 // 1 = aufsteigend, -1 = absteigend
+  let gewaehltesSchuljahr = aktuellesSchuljahrStart()
 
   const el = {
     loginForm: document.getElementById('login-form'),
@@ -98,7 +114,13 @@ function starteApp() {
     csvImportStatus: document.getElementById('csv-import-status'),
     uebersichtKopfzeile: document.getElementById('uebersicht-kopfzeile'),
     uebersichtTabelle: document.getElementById('uebersicht-tabelle-body'),
+    uebersichtSchuljahr: document.getElementById('uebersicht-schuljahr'),
   }
+
+  el.uebersichtSchuljahr.addEventListener('change', () => {
+    gewaehltesSchuljahr = Number(el.uebersichtSchuljahr.value)
+    uebersichtNeuZeichnen()
+  })
 
   // --- Tabs: Absenzen / Personen ---
   for (const button of el.tabButtons) {
@@ -548,8 +570,31 @@ function starteApp() {
     }
   }
 
+  function uebersichtSchuljahrOptionenAktualisieren(termineFuerJahre) {
+    const jahre = [...new Set(termineFuerJahre.map(t => schuljahrVon(t.datum)))].sort((a, b) => a - b)
+    if (jahre.length === 0) return
+    if (!jahre.includes(gewaehltesSchuljahr)) {
+      gewaehltesSchuljahr = jahre.reduce((naechstes, jahr) =>
+        Math.abs(jahr - gewaehltesSchuljahr) < Math.abs(naechstes - gewaehltesSchuljahr) ? jahr : naechstes,
+      )
+    }
+    const bisherige = [...el.uebersichtSchuljahr.options].map(o => o.value).join(',')
+    if (bisherige !== jahre.join(',')) {
+      el.uebersichtSchuljahr.innerHTML = ''
+      for (const jahr of jahre) {
+        const option = document.createElement('option')
+        option.value = jahr
+        option.textContent = schuljahrLabel(jahr)
+        el.uebersichtSchuljahr.appendChild(option)
+      }
+    }
+    el.uebersichtSchuljahr.value = gewaehltesSchuljahr
+  }
+
   function uebersichtNeuZeichnen() {
-    const termineAufsteigend = [...termineGefiltert()].reverse()
+    const alleGefiltert = termineGefiltert()
+    uebersichtSchuljahrOptionenAktualisieren(alleGefiltert)
+    const termineAufsteigend = alleGefiltert.filter(t => schuljahrVon(t.datum) === gewaehltesSchuljahr).reverse()
 
     el.uebersichtKopfzeile.innerHTML = '<th>Name</th>'
     for (const t of termineAufsteigend) {

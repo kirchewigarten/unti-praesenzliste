@@ -178,6 +178,24 @@ button[type='submit'] {
   border-left: 3px solid #2d6cdf;
 }
 
+.uebersicht-filter {
+  margin-bottom: 12px;
+}
+
+.uebersicht-filter label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.uebersicht-filter select {
+  padding: 6px 10px;
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
 .tabelle-scroll {
   overflow-x: auto;
   border-radius: 8px;
