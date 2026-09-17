@@ -239,8 +239,17 @@ function starteApp() {
     })
   }
 
+  // Termine, die vor mehr als 3 Monaten stattfanden, erscheinen in der Auswahl gar nicht mehr
+  // (bleiben aber in der Datenbank und weiterhin vollständig in der Übersicht sichtbar).
+  function terminNichtZuAlt(t) {
+    const grenze = new Date()
+    grenze.setMonth(grenze.getMonth() - 3)
+    return t.datum >= grenze.toISOString().slice(0, 10)
+  }
+
   function terminSelectNeuBefuellen() {
-    const gefiltert = termineGefiltert()
+    // Aufsteigend sortiert: älteste (noch nicht ausgeblendete) Termine oben, künftige unten.
+    const gefiltert = [...termineGefiltert()].filter(terminNichtZuAlt).reverse()
     const vorherAusgewaehlt = ausgewaehlterTerminId
     el.terminSelect.innerHTML = ''
     for (const t of gefiltert) {
@@ -252,10 +261,10 @@ function starteApp() {
     if (gefiltert.some(t => t.id === vorherAusgewaehlt)) {
       el.terminSelect.value = vorherAusgewaehlt
     } else if (gefiltert.length > 0) {
-      // Nächster künftiger Termin bevorzugt, sonst der zuletzt vergangene (Liste ist datum-absteigend sortiert).
+      // Nächster künftiger Termin bevorzugt, sonst der letzte (Liste ist jetzt aufsteigend sortiert).
       const heute = new Date().toISOString().slice(0, 10)
-      const kuenftige = [...gefiltert].reverse().find(t => t.datum >= heute)
-      el.terminSelect.value = (kuenftige ?? gefiltert[0]).id
+      const kuenftige = gefiltert.find(t => t.datum >= heute)
+      el.terminSelect.value = (kuenftige ?? gefiltert[gefiltert.length - 1]).id
     }
     terminAusgewaehlt()
   }
