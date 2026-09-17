@@ -226,7 +226,7 @@ function starteApp() {
       el.icalStatus.textContent = 'Kein iCal-Proxy eingetragen — es werden nur bereits gespeicherte Termine angezeigt.'
       return
     }
-    el.icalStatus.textContent = 'Synchronisiere Termine aus dem Kirchenkalender …'
+    el.icalStatus.textContent = 'Synchronisiere Termine aus kOOL …'
     try {
       const res = await fetch(`${ICAL_PROXY_URL}?url=${encodeURIComponent(ICAL_URL)}`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -243,7 +243,7 @@ function starteApp() {
         anzahl++
       }
       await batch.commit()
-      el.icalStatus.textContent = `${anzahl} Termine aus dem Kirchenkalender synchronisiert.`
+      el.icalStatus.textContent = `${anzahl} Termine aus kOOL synchronisiert.`
     } catch (err) {
       el.icalStatus.textContent = 'iCal-Synchronisierung fehlgeschlagen: ' + err.message + ' (gespeicherte Termine bleiben erhalten.)'
     }
