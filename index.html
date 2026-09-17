@@ -39,19 +39,7 @@
     <section id="tab-absenzen" class="tab-panel">
       <section class="termin-auswahl">
         <p id="ical-status" class="hinweis"></p>
-        <div class="termin-zeile">
-          <input id="termin-suche" type="search" placeholder="Termin filtern (Titel) …" />
-          <select id="termin-select"></select>
-        </div>
-        <details>
-          <summary>Termin manuell hinzufügen</summary>
-          <form id="termin-manuell-form" class="inline-form">
-            <label>Datum<input type="date" name="datum" required /></label>
-            <label>Zeit<input type="time" name="zeit" /></label>
-            <label>Titel<input type="text" name="titel" placeholder="z.B. Unti 1. Klasse" /></label>
-            <button type="submit">Hinzufügen</button>
-          </form>
-        </details>
+        <select id="termin-select"></select>
       </section>
 
       <table class="personen-tabelle">
@@ -73,6 +61,16 @@
         <li><span class="punkt status-unentschuldigt"></span> Unentschuldigt</li>
         <li><span class="punkt"></span> Noch nicht erfasst</li>
       </ul>
+
+      <details class="termin-manuell">
+        <summary>+ Termin manuell hinzufügen</summary>
+        <form id="termin-manuell-form" class="inline-form">
+          <label>Datum<input type="date" name="datum" required /></label>
+          <label>Zeit<input type="time" name="zeit" /></label>
+          <label>Titel<input type="text" name="titel" placeholder="z.B. Unti 1. Klasse" /></label>
+          <button type="submit">Hinzufügen</button>
+        </form>
+      </details>
     </section>
 
     <section id="tab-uebersicht" class="tab-panel" hidden>

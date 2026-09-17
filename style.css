@@ -125,7 +125,8 @@ button[type='submit'] {
 }
 
 .neue-person-button,
-.csv-import {
+.csv-import,
+.termin-manuell {
   width: 100%;
   padding: 8px 14px;
   border: 1px solid var(--rand);
@@ -134,13 +135,15 @@ button[type='submit'] {
   font-size: 0.95rem;
 }
 
-.csv-import summary {
+.csv-import summary,
+.termin-manuell summary {
   cursor: pointer;
   text-align: center;
   list-style: none;
 }
 
-.csv-import summary::-webkit-details-marker {
+.csv-import summary::-webkit-details-marker,
+.termin-manuell summary::-webkit-details-marker {
   display: none;
 }
 
@@ -245,26 +248,15 @@ button[type='submit'] {
   margin-bottom: 16px;
 }
 
-.termin-zeile {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-#termin-suche {
-  flex: 1;
-  min-width: 160px;
-  padding: 8px;
-  border: 1px solid var(--rand);
-  border-radius: 6px;
-}
-
 #termin-select {
-  flex: 2;
-  min-width: 220px;
+  width: 100%;
   padding: 8px;
   border: 1px solid var(--rand);
   border-radius: 6px;
+}
+
+.termin-manuell {
+  margin-top: 16px;
 }
 
 .inline-form {

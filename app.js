@@ -92,7 +92,6 @@ function starteApp() {
     loginScreen: document.getElementById('login-screen'),
     app: document.getElementById('app'),
     abmelden: document.getElementById('abmelden'),
-    terminSuche: document.getElementById('termin-suche'),
     terminSelect: document.getElementById('termin-select'),
     terminManuellForm: document.getElementById('termin-manuell-form'),
     icalStatus: document.getElementById('ical-status'),
@@ -251,13 +250,11 @@ function starteApp() {
   }
 
   // Wird sowohl für die Terminauswahl (Absenzen-Lasche) als auch für die Übersicht verwendet,
-  // damit beide denselben Suchbegriff und dieselbe Ausschlussliste anwenden.
+  // damit beide dieselbe Ausschlussliste anwenden.
   function termineGefiltert() {
-    const suchbegriff = el.terminSuche.value.trim().toLowerCase()
     return termine.filter(t => {
       const titel = (t.titel ?? '').toLowerCase()
-      if (AUSGESCHLOSSENE_TERMIN_STICHWOERTER.some(wort => titel.includes(wort))) return false
-      return !suchbegriff || titel.includes(suchbegriff)
+      return !AUSGESCHLOSSENE_TERMIN_STICHWOERTER.some(wort => titel.includes(wort))
     })
   }
 
@@ -299,10 +296,6 @@ function starteApp() {
     return `${datumText}${zeitText}${titelText}`
   }
 
-  el.terminSuche.addEventListener('input', () => {
-    terminSelectNeuBefuellen()
-    uebersichtNeuZeichnen()
-  })
   el.terminSelect.addEventListener('change', terminAusgewaehlt)
 
   el.terminManuellForm.addEventListener('submit', async e => {
@@ -315,9 +308,6 @@ function starteApp() {
     const id = sichereId(`manuell-${datum}-${titel ?? Date.now()}`)
     await setDoc(doc(termineCol, id), { datum, zeit, titel, ort: null, quelle: 'manuell', aktualisiertAm: serverTimestamp() })
     form.reset()
-    // Filter leeren, sonst bleibt ein manuell hinzugefügter Termin unsichtbar, falls gerade
-    // nach einem Begriff gesucht wird, der im neuen Titel nicht vorkommt.
-    el.terminSuche.value = ''
     ausgewaehlterTerminId = id
   })
 
