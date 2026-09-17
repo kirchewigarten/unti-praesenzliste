@@ -92,23 +92,6 @@
     </section>
 
     <section id="tab-personen" class="tab-panel" hidden>
-      <div class="personen-lasche-kopf">
-        <button id="neue-person" type="button" class="neue-person-button">+ Person hinzufügen</button>
-        <details class="csv-import">
-          <summary>Personen aus CSV importieren</summary>
-          <p class="hinweis">
-            Erkennt automatisch Spalten für Vorname, Nachname, Geburtsdatum und Klasse — egal in
-            welcher Reihenfolge und welche weiteren Spalten die Datei sonst enthält. Bereits
-            vorhandene Personen (gleicher Vor- und Nachname) werden nur ergänzt, nicht dupliziert.
-          </p>
-          <form id="csv-import-form" class="inline-form">
-            <input type="file" name="csv" accept=".csv,text/csv" required />
-            <button type="submit">Importieren</button>
-          </form>
-          <p id="csv-import-status" class="hinweis"></p>
-        </details>
-      </div>
-
       <table class="personen-tabelle personen-verwaltung-tabelle">
         <thead>
           <tr>
@@ -121,6 +104,23 @@
         </thead>
         <tbody id="personen-verwaltung-body"></tbody>
       </table>
+
+      <div class="personen-lasche-fuss">
+        <button id="neue-person" type="button" class="neue-person-button">+ Person hinzufügen</button>
+        <details class="csv-import">
+          <summary>+ Personen aus CSV importieren</summary>
+          <p class="hinweis">
+            Erkennt automatisch Spalten für Vorname, Nachname, Geburtsdatum und Klasse — egal in
+            welcher Reihenfolge und welche weiteren Spalten die Datei sonst enthält. Bereits
+            vorhandene Personen (gleicher Vor- und Nachname) werden nur ergänzt, nicht dupliziert.
+          </p>
+          <form id="csv-import-form" class="inline-form">
+            <input type="file" name="csv" accept=".csv,text/csv" required />
+            <button type="submit">Importieren</button>
+          </form>
+          <p id="csv-import-status" class="hinweis"></p>
+        </details>
+      </div>
     </section>
   </section>
 

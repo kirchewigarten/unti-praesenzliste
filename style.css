@@ -117,16 +117,31 @@ button[type='submit'] {
   border-color: #222;
 }
 
-.personen-lasche-kopf {
-  margin-bottom: 12px;
+.personen-lasche-fuss {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
+.neue-person-button,
 .csv-import {
-  margin-top: 12px;
-  background: white;
+  width: 100%;
+  padding: 8px 14px;
   border: 1px solid var(--rand);
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.95rem;
+}
+
+.csv-import summary {
+  cursor: pointer;
+  text-align: center;
+  list-style: none;
+}
+
+.csv-import summary::-webkit-details-marker {
+  display: none;
 }
 
 .personen-verwaltung-tabelle tbody tr:hover {
@@ -314,11 +329,6 @@ tr.status-abgemeldet {
 tr.status-unentschuldigt {
   background: var(--rot);
   color: var(--rot-text);
-}
-
-.neue-person-button {
-  margin-top: 12px;
-  width: 100%;
 }
 
 .legende {
