@@ -133,6 +133,56 @@ button[type='submit'] {
   background: #f0f0f0;
 }
 
+.leiter-zeile td:first-child {
+  font-weight: 700;
+  border-left: 3px solid #2d6cdf;
+}
+
+.tabelle-scroll {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.uebersicht-tabelle {
+  box-shadow: none;
+}
+
+.uebersicht-tabelle th,
+.uebersicht-tabelle td {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.uebersicht-name-zelle,
+.uebersicht-tabelle thead th:first-child {
+  position: sticky;
+  left: 0;
+  background: white;
+  text-align: left;
+  z-index: 1;
+}
+
+.uebersicht-tabelle thead th:first-child {
+  background: #222;
+  z-index: 2;
+}
+
+.uebersicht-tabelle td.status-anwesend {
+  background: var(--gruen);
+  color: var(--gruen-text);
+}
+
+.uebersicht-tabelle td.status-abgemeldet {
+  background: var(--gelb);
+  color: var(--gelb-text);
+}
+
+.uebersicht-tabelle td.status-unentschuldigt {
+  background: var(--rot);
+  color: var(--rot-text);
+}
+
 .termin-auswahl {
   margin-bottom: 16px;
 }

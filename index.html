@@ -32,6 +32,7 @@
 
     <nav class="tabs">
       <button type="button" class="tab-button aktiv" data-tab="absenzen">Absenzen</button>
+      <button type="button" class="tab-button" data-tab="uebersicht">Übersicht</button>
       <button type="button" class="tab-button" data-tab="personen">Personen</button>
     </nav>
 
@@ -74,6 +75,22 @@
       </ul>
     </section>
 
+    <section id="tab-uebersicht" class="tab-panel" hidden>
+      <p class="hinweis">
+        Zeigt alle Personen und ihren Status über alle aktuell gefilterten Termine hinweg (gleicher
+        Filter wie in der Absenzen-Lasche). Nur Übersicht — Status ändern geht in der
+        Absenzen-Lasche.
+      </p>
+      <div class="tabelle-scroll">
+        <table class="personen-tabelle uebersicht-tabelle">
+          <thead>
+            <tr id="uebersicht-kopfzeile"></tr>
+          </thead>
+          <tbody id="uebersicht-tabelle-body"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section id="tab-personen" class="tab-panel" hidden>
       <div class="personen-lasche-kopf">
         <button id="neue-person" type="button" class="neue-person-button">+ Person hinzufügen</button>
@@ -99,6 +116,7 @@
             <th>Nachname</th>
             <th>Geburtstag</th>
             <th>Klasse</th>
+            <th>Rolle</th>
           </tr>
         </thead>
         <tbody id="personen-verwaltung-body"></tbody>
@@ -118,6 +136,12 @@
           <option value="1">1.</option>
           <option value="2">2.</option>
           <option value="3">3.</option>
+        </select>
+      </label>
+      <label>Rolle
+        <select name="rolle">
+          <option value="teilnehmer">Teilnehmer</option>
+          <option value="leiter">Leiter</option>
         </select>
       </label>
       <div class="dialog-buttons">

@@ -26,6 +26,15 @@ import { personenAusCsv } from './csv-import.js'
 
 const STATUS_REIHENFOLGE = [null, 'anwesend', 'abgemeldet', 'unentschuldigt']
 const STATUS_LABEL = { anwesend: 'Anwesend', abgemeldet: 'Abgemeldet', unentschuldigt: 'Unentschuldigt' }
+const STATUS_KUERZEL = { anwesend: 'A', abgemeldet: 'Ab', unentschuldigt: 'U' }
+
+// Termine mit diesen Wörtern im Titel werden standardmässig nie angezeigt (weder in der
+// Terminauswahl noch in der Übersicht) — unabhängig vom Suchbegriff im Filterfeld.
+const AUSGESCHLOSSENE_TERMIN_STICHWOERTER = ['recharge', 'untipraktikum']
+
+function rolleRang(rolle) {
+  return rolle === 'leiter' ? 0 : 1
+}
 
 if (FIREBASE_CONFIG.apiKey === 'BITTE_AUSFUELLEN') {
   zeigeFehler(
@@ -76,10 +85,13 @@ function starteApp() {
     tabButtons: document.querySelectorAll('.tab-button'),
     tabPanels: {
       absenzen: document.getElementById('tab-absenzen'),
+      uebersicht: document.getElementById('tab-uebersicht'),
       personen: document.getElementById('tab-personen'),
     },
     csvImportForm: document.getElementById('csv-import-form'),
     csvImportStatus: document.getElementById('csv-import-status'),
+    uebersichtKopfzeile: document.getElementById('uebersicht-kopfzeile'),
+    uebersichtTabelle: document.getElementById('uebersicht-tabelle-body'),
   }
 
   // --- Tabs: Absenzen / Personen ---
@@ -119,6 +131,7 @@ function starteApp() {
   onSnapshot(query(termineCol, orderBy('datum', 'desc')), snap => {
     termine = snap.docs.map(d => ({ id: d.id, ...d.data() }))
     terminSelectNeuBefuellen()
+    uebersichtNeuZeichnen()
   })
 
   async function icalSynchronisieren() {
@@ -153,9 +166,19 @@ function starteApp() {
     return text.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 200)
   }
 
-  function terminSelectNeuBefuellen() {
+  // Wird sowohl für die Terminauswahl (Absenzen-Lasche) als auch für die Übersicht verwendet,
+  // damit beide denselben Suchbegriff und dieselbe Ausschlussliste anwenden.
+  function termineGefiltert() {
     const suchbegriff = el.terminSuche.value.trim().toLowerCase()
-    const gefiltert = termine.filter(t => !suchbegriff || (t.titel ?? '').toLowerCase().includes(suchbegriff))
+    return termine.filter(t => {
+      const titel = (t.titel ?? '').toLowerCase()
+      if (AUSGESCHLOSSENE_TERMIN_STICHWOERTER.some(wort => titel.includes(wort))) return false
+      return !suchbegriff || titel.includes(suchbegriff)
+    })
+  }
+
+  function terminSelectNeuBefuellen() {
+    const gefiltert = termineGefiltert()
     const vorherAusgewaehlt = ausgewaehlterTerminId
     el.terminSelect.innerHTML = ''
     for (const t of gefiltert) {
@@ -183,7 +206,10 @@ function starteApp() {
     return `${datumText}${zeitText}${titelText}`
   }
 
-  el.terminSuche.addEventListener('input', terminSelectNeuBefuellen)
+  el.terminSuche.addEventListener('input', () => {
+    terminSelectNeuBefuellen()
+    uebersichtNeuZeichnen()
+  })
   el.terminSelect.addEventListener('change', terminAusgewaehlt)
 
   el.terminManuellForm.addEventListener('submit', async e => {
@@ -202,11 +228,22 @@ function starteApp() {
     ausgewaehlterTerminId = id
   })
 
-  // --- Personen: live Liste ---
+  // --- Personen: live Liste (Leiter immer zuoberst, sonst wie von Firestore nach Nachname
+  // sortiert — Array.sort ist stabil, das bleibt also innerhalb der beiden Gruppen erhalten) ---
   onSnapshot(query(personenCol, orderBy('nachname')), snap => {
-    personen = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    personen = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => rolleRang(a.rolle) - rolleRang(b.rolle))
     tabelleNeuZeichnen()
     personenVerwaltungNeuZeichnen()
+    uebersichtNeuZeichnen()
+  })
+
+  // --- Anwesenheiten über alle Termine (nur lesend, für die Übersicht-Lasche) ---
+  let alleAnwesenheiten = new Map() // `${terminId}_${personId}` -> status
+  onSnapshot(anwesenheitenCol, snap => {
+    alleAnwesenheiten = new Map(snap.docs.map(d => [`${d.data().terminId}_${d.data().personId}`, d.data().status]))
+    uebersichtNeuZeichnen()
   })
 
   el.neuePerson.addEventListener('click', () => personDialogOeffnen(null))
@@ -242,6 +279,7 @@ function starteApp() {
             nachname: eintrag.nachname,
             geburtstag: eintrag.geburtstag,
             klasse: eintrag.klasse,
+            rolle: 'teilnehmer',
             erstelltAm: serverTimestamp(),
           })
           bekannt.push({ id: ref.id, ...eintrag })
@@ -288,6 +326,7 @@ function starteApp() {
       nachname: form.nachname.value.trim(),
       geburtstag: form.geburtstag.value || null,
       klasse: form.klasse.value || null,
+      rolle: form.rolle.value,
     }
     if (!daten.vorname || !daten.nachname) return
     const bearbeiteteId = form.dataset.personId
@@ -317,6 +356,7 @@ function starteApp() {
       form.nachname.value = person.nachname ?? ''
       form.geburtstag.value = person.geburtstag ?? ''
       form.klasse.value = person.klasse ?? ''
+      form.rolle.value = person.rolle ?? 'teilnehmer'
       el.personLoeschen.hidden = false
     } else {
       el.personDialogTitel.textContent = 'Person hinzufügen'
@@ -370,7 +410,7 @@ function starteApp() {
     for (const person of personen) {
       const status = anwesenheitenAktuell.get(person.id) ?? null
       const zeile = document.createElement('tr')
-      zeile.className = status ? `status-${status}` : ''
+      zeile.className = [status ? `status-${status}` : '', person.rolle === 'leiter' ? 'leiter-zeile' : ''].join(' ').trim()
 
       const vornameZelle = document.createElement('td')
       vornameZelle.textContent = person.vorname
@@ -402,7 +442,7 @@ function starteApp() {
     el.personenVerwaltungTabelle.innerHTML = ''
     for (const person of personen) {
       const zeile = document.createElement('tr')
-      zeile.className = 'name-zelle'
+      zeile.className = ['name-zelle', person.rolle === 'leiter' ? 'leiter-zeile' : ''].join(' ').trim()
       zeile.title = 'Klicken, um die Person zu bearbeiten'
       zeile.addEventListener('click', () => personDialogOeffnen(person))
 
@@ -418,9 +458,50 @@ function starteApp() {
       const klasseZelle = document.createElement('td')
       klasseZelle.textContent = person.klasse ?? ''
 
-      zeile.append(vornameZelle, nachnameZelle, geburtstagZelle, klasseZelle)
+      const rolleZelle = document.createElement('td')
+      rolleZelle.textContent = person.rolle === 'leiter' ? 'Leiter' : 'Teilnehmer'
+
+      zeile.append(vornameZelle, nachnameZelle, geburtstagZelle, klasseZelle, rolleZelle)
       el.personenVerwaltungTabelle.appendChild(zeile)
     }
+  }
+
+  function uebersichtNeuZeichnen() {
+    const termineAufsteigend = [...termineGefiltert()].reverse()
+
+    el.uebersichtKopfzeile.innerHTML = '<th>Name</th>'
+    for (const t of termineAufsteigend) {
+      const kopfZelle = document.createElement('th')
+      kopfZelle.textContent = terminKurzBeschriftung(t)
+      kopfZelle.title = terminBeschriftung(t)
+      el.uebersichtKopfzeile.appendChild(kopfZelle)
+    }
+
+    el.uebersichtTabelle.innerHTML = ''
+    for (const person of personen) {
+      const zeile = document.createElement('tr')
+      if (person.rolle === 'leiter') zeile.className = 'leiter-zeile'
+
+      const nameZelle = document.createElement('td')
+      nameZelle.textContent = `${person.vorname} ${person.nachname}`
+      nameZelle.className = 'uebersicht-name-zelle'
+      zeile.appendChild(nameZelle)
+
+      for (const t of termineAufsteigend) {
+        const status = alleAnwesenheiten.get(`${t.id}_${person.id}`) ?? null
+        const zelle = document.createElement('td')
+        zelle.className = status ? `status-${status}` : ''
+        zelle.textContent = status ? STATUS_KUERZEL[status] : '–'
+        zelle.title = terminBeschriftung(t)
+        zeile.appendChild(zelle)
+      }
+      el.uebersichtTabelle.appendChild(zeile)
+    }
+  }
+
+  function terminKurzBeschriftung(t) {
+    const datum = new Date(t.datum + 'T00:00:00')
+    return datum.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: '2-digit' })
   }
 
   function formatiereDatum(iso) {
