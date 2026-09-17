@@ -271,6 +271,26 @@ button[type='submit'] {
   font-weight: 600;
 }
 
+.personen-tabelle th.sortierbar {
+  cursor: pointer;
+  user-select: none;
+}
+
+.personen-tabelle th.sortierbar:hover {
+  background: #3a3a3a;
+}
+
+.sortier-icon {
+  margin-left: 4px;
+  font-size: 0.75em;
+  opacity: 0.45;
+  display: inline-block;
+}
+
+.sortier-icon.aktiv {
+  opacity: 1;
+}
+
 .name-zelle {
   cursor: pointer;
 }

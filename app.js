@@ -37,6 +37,9 @@ function rolleRang(rolle) {
   return rolle === 'leiter' ? 0 : 1
 }
 
+// Reihenfolge, nach der die Icons in den Tabellenköpfen den Sortierzustand anzeigen.
+const SORTIER_ICON = { keine: '⇅', auf: '▲', ab: '▼' }
+
 if (FIREBASE_CONFIG.apiKey === 'BITTE_AUSFUELLEN') {
   zeigeFehler(
     'Die Datei config.js ist noch nicht ausgefüllt. Bitte die Firebase-Zugangsdaten eintragen ' +
@@ -64,6 +67,8 @@ function starteApp() {
   let termine = []
   let anwesenheitenAktuell = new Map() // personId -> status
   let ausgewaehlterTerminId = null
+  let sortierSpalte = 'geburtstag'
+  let sortierRichtung = 1 // 1 = aufsteigend, -1 = absteigend
 
   const el = {
     loginForm: document.getElementById('login-form'),
@@ -103,6 +108,62 @@ function starteApp() {
         panel.hidden = name !== button.dataset.tab
       }
     })
+  }
+
+  // --- Sortierbare Tabellenköpfe (Absenzen + Personen; gemeinsamer Sortierzustand oben) ---
+  for (const kopfZelle of document.querySelectorAll('th[data-sort]')) {
+    kopfZelle.classList.add('sortierbar')
+    kopfZelle.title = 'Klicken zum Sortieren'
+    const icon = document.createElement('span')
+    icon.className = 'sortier-icon'
+    kopfZelle.appendChild(icon)
+    kopfZelle.addEventListener('click', () => sortierNach(kopfZelle.dataset.sort))
+  }
+  sortierIconsAktualisieren()
+
+  function sortierNach(spalte) {
+    if (sortierSpalte === spalte) {
+      sortierRichtung *= -1
+    } else {
+      sortierSpalte = spalte
+      sortierRichtung = 1
+    }
+    personenNeuSortieren()
+    sortierIconsAktualisieren()
+    tabelleNeuZeichnen()
+    personenVerwaltungNeuZeichnen()
+    uebersichtNeuZeichnen()
+  }
+
+  function sortierIconsAktualisieren() {
+    for (const kopfZelle of document.querySelectorAll('th[data-sort]')) {
+      const icon = kopfZelle.querySelector('.sortier-icon')
+      const aktiv = kopfZelle.dataset.sort === sortierSpalte
+      icon.textContent = aktiv ? (sortierRichtung === 1 ? SORTIER_ICON.auf : SORTIER_ICON.ab) : SORTIER_ICON.keine
+      icon.classList.toggle('aktiv', aktiv)
+    }
+  }
+
+  // Leiter stehen immer zuoberst (feste Regel); innerhalb der beiden Gruppen wird nach der
+  // gewählten Spalte sortiert. Leere Werte landen immer am Schluss, unabhängig von der Richtung.
+  function personenNeuSortieren() {
+    personen.sort((a, b) => rolleRang(a.rolle) - rolleRang(b.rolle) || vergleicheSpalte(a, b, sortierSpalte))
+  }
+
+  function vergleicheSpalte(a, b, spalte) {
+    if (spalte === 'status') {
+      const rangA = STATUS_REIHENFOLGE.indexOf(anwesenheitenAktuell.get(a.id) ?? null)
+      const rangB = STATUS_REIHENFOLGE.indexOf(anwesenheitenAktuell.get(b.id) ?? null)
+      return sortierRichtung * (rangA - rangB)
+    }
+    const wertA = a[spalte] || null
+    const wertB = b[spalte] || null
+    if (wertA === null || wertB === null) {
+      if (wertA === wertB) return 0
+      return wertA === null ? 1 : -1 // leere Werte immer am Schluss
+    }
+    if (spalte === 'klasse') return sortierRichtung * (Number(wertA) - Number(wertB))
+    return sortierRichtung * String(wertA).localeCompare(String(wertB), 'de-CH')
   }
 
   // --- Login ---
@@ -229,12 +290,10 @@ function starteApp() {
     ausgewaehlterTerminId = id
   })
 
-  // --- Personen: live Liste (Leiter immer zuoberst, sonst wie von Firestore nach Nachname
-  // sortiert — Array.sort ist stabil, das bleibt also innerhalb der beiden Gruppen erhalten) ---
+  // --- Personen: live Liste ---
   onSnapshot(query(personenCol, orderBy('nachname')), snap => {
-    personen = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => rolleRang(a.rolle) - rolleRang(b.rolle))
+    personen = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    personenNeuSortieren()
     tabelleNeuZeichnen()
     personenVerwaltungNeuZeichnen()
     uebersichtNeuZeichnen()
@@ -375,14 +434,21 @@ function starteApp() {
     if (anwesenheitenUnsubscribe) anwesenheitenUnsubscribe()
     anwesenheitenAktuell = new Map()
     if (!ausgewaehlterTerminId) {
+      personenNeuSortieren()
       tabelleNeuZeichnen()
+      personenVerwaltungNeuZeichnen()
+      uebersichtNeuZeichnen()
       return
     }
     anwesenheitenUnsubscribe = onSnapshot(
       query(anwesenheitenCol, where('terminId', '==', ausgewaehlterTerminId)),
       snap => {
         anwesenheitenAktuell = new Map(snap.docs.map(d => [d.data().personId, d.data().status]))
+        // Bei Sortierung nach Status muss die Reihenfolge in allen Laschen nachgezogen werden.
+        personenNeuSortieren()
         tabelleNeuZeichnen()
+        personenVerwaltungNeuZeichnen()
+        uebersichtNeuZeichnen()
       },
     )
   }
