@@ -443,7 +443,13 @@ function starteApp() {
     el.personenVerwaltungTabelle.innerHTML = ''
     for (const person of personen) {
       const zeile = document.createElement('tr')
-      zeile.className = ['name-zelle', person.rolle === 'leiter' ? 'leiter-zeile' : ''].join(' ').trim()
+      zeile.className = [
+        'name-zelle',
+        person.rolle === 'leiter' ? 'leiter-zeile' : '',
+        person.klasse ? `klasse-${person.klasse}` : '',
+      ]
+        .join(' ')
+        .trim()
       zeile.title = 'Klicken, um die Person zu bearbeiten'
       zeile.addEventListener('click', () => personDialogOeffnen(person))
 

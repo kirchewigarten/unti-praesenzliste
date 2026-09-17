@@ -133,6 +133,31 @@ button[type='submit'] {
   background: #f0f0f0;
 }
 
+/* Klasse-Einfärbung: 3. Klasse grün, 2. Klasse blau, 1. Klasse rot (feine, blasse Töne) */
+.personen-verwaltung-tabelle tbody tr.klasse-3 {
+  background: #e3f3e3;
+}
+
+.personen-verwaltung-tabelle tbody tr.klasse-2 {
+  background: #e1ecf7;
+}
+
+.personen-verwaltung-tabelle tbody tr.klasse-1 {
+  background: #f9e6e6;
+}
+
+.personen-verwaltung-tabelle tbody tr.klasse-3:hover {
+  background: #d5ebd5;
+}
+
+.personen-verwaltung-tabelle tbody tr.klasse-2:hover {
+  background: #d2e3f2;
+}
+
+.personen-verwaltung-tabelle tbody tr.klasse-1:hover {
+  background: #f2d6d6;
+}
+
 .leiter-zeile td:first-child {
   font-weight: 700;
   border-left: 3px solid #2d6cdf;
