@@ -6,6 +6,7 @@
   --rot: #f3c3c1;
   --rot-text: #a3231e;
   --rand: #d8d8d8;
+  --akzent: #2d6cdf;
 }
 
 * {
@@ -248,11 +249,101 @@ button[type='submit'] {
   margin-bottom: 16px;
 }
 
+.chip-leiste {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-top: 8px;
+}
+
+.chip {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border: 1px solid var(--rand);
+  border-radius: 10px;
+  background: white;
+  color: #222;
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.chip .tag {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #666;
+}
+
+.chip.aktiv {
+  background: var(--akzent);
+  border-color: var(--akzent);
+  color: white;
+}
+
+.chip.aktiv .tag {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.chip:hover:not(.aktiv) {
+  border-color: var(--akzent);
+}
+
+.termin-info-zeile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.termin-info-titel {
+  font-weight: 600;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--akzent);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0;
+  white-space: nowrap;
+}
+
 #termin-select {
   width: 100%;
   padding: 8px;
+  margin-top: 8px;
   border: 1px solid var(--rand);
   border-radius: 6px;
+}
+
+.termin-abschliessen-button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 14px;
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.95rem;
+}
+
+.termin-abschliessen-button.gesperrt {
+  border-color: var(--rot-text);
+  color: var(--rot-text);
+}
+
+.status-zelle.gesperrt {
+  cursor: default;
+  opacity: 0.7;
 }
 
 .termin-manuell {

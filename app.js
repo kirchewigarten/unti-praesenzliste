@@ -93,6 +93,10 @@ function starteApp() {
     app: document.getElementById('app'),
     abmelden: document.getElementById('abmelden'),
     terminSelect: document.getElementById('termin-select'),
+    terminChips: document.getElementById('termin-chips'),
+    terminInfoTitel: document.getElementById('termin-info-titel'),
+    terminAlleUmschalten: document.getElementById('termin-alle-umschalten'),
+    terminAbschliessenButton: document.getElementById('termin-abschliessen-button'),
     terminManuellForm: document.getElementById('termin-manuell-form'),
     icalStatus: document.getElementById('ical-status'),
     tabelle: document.getElementById('personen-tabelle-body'),
@@ -285,8 +289,51 @@ function starteApp() {
       const kuenftige = gefiltert.find(t => t.datum >= heute)
       el.terminSelect.value = (kuenftige ?? gefiltert[gefiltert.length - 1]).id
     }
+    terminChipsNeuZeichnen(gefiltert)
     terminAusgewaehlt()
   }
+
+  // Datums-Chip-Leiste als komfortablere Alternative zum <select> (das als verstecktes,
+  // vollständiges Fallback über "Alle Termine ▾" erreichbar bleibt).
+  function terminChipsNeuZeichnen(gefiltert) {
+    const aktuelleId = el.terminSelect.value
+    el.terminChips.innerHTML = ''
+    for (const t of gefiltert) {
+      const chip = document.createElement('button')
+      chip.type = 'button'
+      chip.className = 'chip' + (t.id === aktuelleId ? ' aktiv' : '')
+      chip.dataset.terminId = t.id
+      const datum = new Date(t.datum + 'T00:00:00')
+      const tag = document.createElement('span')
+      tag.className = 'tag'
+      tag.textContent = datum.toLocaleDateString('de-CH', { weekday: 'short' })
+      const kurzDatum = document.createElement('span')
+      kurzDatum.textContent = datum.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: '2-digit' })
+      chip.append(tag, kurzDatum)
+      chip.title = terminBeschriftung(t)
+      chip.addEventListener('click', () => terminAuswaehlen(t.id))
+      el.terminChips.appendChild(chip)
+    }
+    el.terminChips.querySelector('.chip.aktiv')?.scrollIntoView({ inline: 'center', block: 'nearest' })
+  }
+
+  function terminAuswaehlen(id) {
+    el.terminSelect.value = id
+    for (const chip of el.terminChips.querySelectorAll('.chip')) {
+      chip.classList.toggle('aktiv', chip.dataset.terminId === id)
+    }
+    chipsAktuellerAuswahl()?.scrollIntoView({ inline: 'center', block: 'nearest' })
+    terminAusgewaehlt()
+  }
+
+  function chipsAktuellerAuswahl() {
+    return el.terminChips.querySelector('.chip.aktiv')
+  }
+
+  el.terminAlleUmschalten.addEventListener('click', () => {
+    el.terminSelect.hidden = !el.terminSelect.hidden
+    el.terminAlleUmschalten.textContent = el.terminSelect.hidden ? 'Alle Termine ▾' : 'Alle Termine ▴'
+  })
 
   function terminBeschriftung(t) {
     const datum = new Date(t.datum + 'T00:00:00')
@@ -296,7 +343,14 @@ function starteApp() {
     return `${datumText}${zeitText}${titelText}`
   }
 
-  el.terminSelect.addEventListener('change', terminAusgewaehlt)
+  el.terminSelect.addEventListener('change', () => terminAuswaehlen(el.terminSelect.value))
+
+  el.terminAbschliessenButton.addEventListener('click', async () => {
+    if (!ausgewaehlterTerminId) return
+    const aktuellerTermin = termine.find(t => t.id === ausgewaehlterTerminId)
+    const neuerWert = !(aktuellerTermin?.abgeschlossen ?? false)
+    await updateDoc(doc(termineCol, ausgewaehlterTerminId), { abgeschlossen: neuerWert })
+  })
 
   el.terminManuellForm.addEventListener('submit', async e => {
     e.preventDefault()
@@ -452,6 +506,7 @@ function starteApp() {
 
   function terminAusgewaehlt() {
     ausgewaehlterTerminId = el.terminSelect.value || null
+    terminInfoAktualisieren()
     if (anwesenheitenUnsubscribe) anwesenheitenUnsubscribe()
     anwesenheitenAktuell = new Map()
     if (!ausgewaehlterTerminId) {
@@ -474,11 +529,25 @@ function starteApp() {
     )
   }
 
+  function terminInfoAktualisieren() {
+    const t = termine.find(x => x.id === ausgewaehlterTerminId)
+    el.terminInfoTitel.textContent = t ? terminBeschriftung(t) : 'Kein Termin ausgewählt'
+    const gesperrt = t?.abgeschlossen ?? false
+    el.terminAbschliessenButton.textContent = gesperrt ? 'Termin wieder aktivieren' : 'Termin abschliessen'
+    el.terminAbschliessenButton.classList.toggle('gesperrt', gesperrt)
+    el.terminAbschliessenButton.disabled = !t
+  }
+
+  function terminIstGesperrt() {
+    return termine.find(t => t.id === ausgewaehlterTerminId)?.abgeschlossen ?? false
+  }
+
   async function statusSetzen(personId, neuerStatus) {
     if (!ausgewaehlterTerminId) {
       alert('Bitte zuerst einen Termin auswählen.')
       return
     }
+    if (terminIstGesperrt()) return
     const id = `${ausgewaehlterTerminId}_${personId}`
     if (neuerStatus === null) {
       await deleteDoc(doc(anwesenheitenCol, id))
@@ -494,6 +563,7 @@ function starteApp() {
   }
 
   function tabelleNeuZeichnen() {
+    const gesperrt = terminIstGesperrt()
     el.tabelle.innerHTML = ''
     for (const person of personen) {
       const status = anwesenheitenAktuell.get(person.id) ?? null
@@ -513,13 +583,17 @@ function starteApp() {
       klasseZelle.textContent = person.klasse ?? ''
 
       const statusZelle = document.createElement('td')
-      statusZelle.className = 'status-zelle'
+      statusZelle.className = gesperrt ? 'status-zelle gesperrt' : 'status-zelle'
       statusZelle.textContent = status ? STATUS_LABEL[status] : '–'
-      statusZelle.title = 'Klicken, um den Status zu wechseln'
-      statusZelle.addEventListener('click', () => {
-        const naechsterIndex = (STATUS_REIHENFOLGE.indexOf(status) + 1) % STATUS_REIHENFOLGE.length
-        statusSetzen(person.id, STATUS_REIHENFOLGE[naechsterIndex])
-      })
+      if (gesperrt) {
+        statusZelle.title = 'Termin ist abgeschlossen — zum Ändern zuerst wieder aktivieren'
+      } else {
+        statusZelle.title = 'Klicken, um den Status zu wechseln'
+        statusZelle.addEventListener('click', () => {
+          const naechsterIndex = (STATUS_REIHENFOLGE.indexOf(status) + 1) % STATUS_REIHENFOLGE.length
+          statusSetzen(person.id, STATUS_REIHENFOLGE[naechsterIndex])
+        })
+      }
 
       zeile.append(vornameZelle, nachnameZelle, geburtstagZelle, klasseZelle, statusZelle)
       el.tabelle.appendChild(zeile)

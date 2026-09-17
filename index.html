@@ -39,7 +39,13 @@
     <section id="tab-absenzen" class="tab-panel">
       <section class="termin-auswahl">
         <p id="ical-status" class="hinweis"></p>
-        <select id="termin-select"></select>
+        <div class="chip-leiste" id="termin-chips"></div>
+        <div class="termin-info-zeile">
+          <span id="termin-info-titel" class="termin-info-titel"></span>
+          <button type="button" id="termin-alle-umschalten" class="link-button">Alle Termine ▾</button>
+        </div>
+        <select id="termin-select" hidden></select>
+        <button type="button" id="termin-abschliessen-button" class="termin-abschliessen-button"></button>
       </section>
 
       <table class="personen-tabelle">
